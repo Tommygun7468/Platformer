@@ -27,12 +27,32 @@ function getDeltaTime()
 	return deltaTime;
 }
 
+var cells = []; // the array that holds our simplified collision data
+function initialize() {
+	 for(var layerIdx = 0; layerIdx < LAYER_COUNT; layerIdx++) { // initialize the collision map
+		 cells[layerIdx] = [];
+		 var idx = 0;
+						 // for each tile we find in the layer data, we need to create 4 collisions
+						 // (because our collision squares are 35x35 but the tile in the
+						 // level are 70x70)
+				 }
+						 // if we haven't set this cell's value, then set it to 0 now
+				idx++;
+}
+
+
 //-------------------- Don't modify anything above here
 
 
 // some variables to calculate the Frames Per Second (FPS - this tells use
 // how fast our game is running, and allows us to make the game run at a 
 // constant speed)
+
+var LAYER_COUNT = 3;
+var LAYER_BACKGOUND = 0;
+var LAYER_PLATFORMS = 1;
+var LAYER_LADDERS = 2;
+
 var fps = 0;
 var fpsCount = 0;
 var fpsTime = 0;
@@ -43,13 +63,50 @@ var keyboard = new Keyboard();
 var tileset = document.createElement("img");
 tileset.src = "tileset.png";
 
+function cellAtPixelCoord(layer, x,y)
+{
+	if(x<0 || x>SCREEN_WIDTH)
+		return 1;
+	// let the player drop of the bottom of the screen (this means death)
+	if(y>SCREEN_HEIGHT)
+		return 0;
+	return cellAtTileCoord(layer, p2t(x), p2t(y));
+};
+
+function cellAtTileCoord(layer, tx, ty)
+{
+	if(tx<0 || tx>=MAP.tw)
+		return 1;
+	// let the player drop of the bottom of the screen (this means death)
+	if(ty>=MAP.th)
+		return 0;
+	return cells[layer][ty][tx];
+};
+
+function tileToPixel(tile)
+{
+	return tile * TILE;
+};
+
+function pixelToTile(pixel)
+{
+	return Math.floor(pixel/TILE);
+};
+
+function bound(value, min, max)
+{
+	if(value < min)
+		return min;
+	if(value > max)
+		return max;
+	return value;
+}
 
 function drawMap()
 {
 	for(var layerIdx=0; layerIdx<LAYER_COUNT; layerIdx++)
 	{
 		var idx = 0;
-		for( var y = 0; y < level1.layers[layerIdx].height; y++ )
 		{
 			for( var x = 0; x < level1.layers[layerIdx].width; x++ )
 			{
@@ -76,7 +133,7 @@ function run()
 	var deltaTime = getDeltaTime();
 
 	player.update(deltaTime);
-
+	
 	player.draw();
 	
 		
@@ -95,6 +152,8 @@ function run()
 	context.font="14px Arial";
 	context.fillText("FPS: " + fps, 5, 20, 100);
 }
+
+initialize();
 
 
 //-------------------- Don't modify anything below here
