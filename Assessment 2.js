@@ -27,45 +27,61 @@ function getDeltaTime()
 	return deltaTime;
 }
 
-var cells = []; // the array that holds our simplified collision data
-function initialize() {
-	 for(var layerIdx = 0; layerIdx < LAYER_COUNT; layerIdx++) { // initialize the collision map
-		 cells[layerIdx] = [];
-		 var idx = 0;
-						 // for each tile we find in the layer data, we need to create 4 collisions
-						 // (because our collision squares are 35x35 but the tile in the
-						 // level are 70x70)
-				 }
-						 // if we haven't set this cell's value, then set it to 0 now
-				idx++;
-}
-
 
 //-------------------- Don't modify anything above here
 
-
-// some variables to calculate the Frames Per Second (FPS - this tells use
-// how fast our game is running, and allows us to make the game run at a 
-// constant speed)
+var SCREEN_WIDTH = canvas.width;
+var SCREEN_HEIGHT = canvas.height;
 
 var LAYER_COUNT = 3;
 var LAYER_BACKGOUND = 0;
 var LAYER_PLATFORMS = 1;
 var LAYER_LADDERS = 2;
 
+var MAP = { tw: 60, th: 15 };
+var TILE = 35;
+var TILESET_TILE = TILE * 2;
+var TILESET_PADDING = 2;
+var TILESET_SPACING = 2;
+var TILESET_COUNT_X = 14;
+var TILESET_COUNT_Y = 14;
+
+ // abitrary choice for 1m
+var METER = TILE;
+ // very exaggerated gravity (6x)
+var GRAVITY = METER * 9.8 * 6;
+ // max horizontal speed (10 tiles per second)
+var MAXDX = METER * 10;
+ // max vertical speed (15 tiles per second)
+var MAXDY = METER * 15;
+ // horizontal acceleration - take 1/2 second to reach maxdx
+var ACCEL = MAXDX * 2;
+ // horizontal friction - take 1/6 second to stop from maxdx
+var FRICTION = MAXDX * 6;
+ // (a large) instantaneous jump impulse
+var JUMP = METER * 1500;
+
+// some variables to calculate the Frames Per Second (FPS - this tells use
+// how fast our game is running, and allows us to make the game run at a 
+// constant speed)
 var fps = 0;
 var fpsCount = 0;
 var fpsTime = 0;
 
-var player = new Player();
-var keyboard = new Keyboard();
-
+// load the image to use for the level tiles
 var tileset = document.createElement("img");
 tileset.src = "tileset.png";
 
+// load an image to draw
+var ChuckNorris = document.createElement("img");
+ChuckNorris.src = "hero.png";
+
+var player = new Player();
+var keyboard = new Keyboard();
+
 function cellAtPixelCoord(layer, x,y)
 {
-	if(x<0 || x>SCREEN_WIDTH)
+	if(x<0 || x>SCREEN_WIDTH) // || y<0)
 		return 1;
 	// let the player drop of the bottom of the screen (this means death)
 	if(y>SCREEN_HEIGHT)
@@ -75,7 +91,7 @@ function cellAtPixelCoord(layer, x,y)
 
 function cellAtTileCoord(layer, tx, ty)
 {
-	if(tx<0 || tx>=MAP.tw)
+	if(tx<0 || tx>=MAP.tw) // || ty<0)
 		return 1;
 	// let the player drop of the bottom of the screen (this means death)
 	if(ty>=MAP.th)
@@ -102,11 +118,39 @@ function bound(value, min, max)
 	return value;
 }
 
+var cells = []; // the array that holds our simplified collision data
+function initialize() {
+	for(var layerIdx = 0; layerIdx < LAYER_COUNT; layerIdx++) { // initialize the collision map
+		cells[layerIdx] = [];
+		var idx = 0;
+		for(var y = 0; y < level1.layers[layerIdx].height; y++) {
+			cells[layerIdx][y] = [];
+			for(var x = 0; x < level1.layers[layerIdx].width; x++) {
+				if(level1.layers[layerIdx].data[idx] != 0) {
+						// for each tile we find in the layer data, we need to create 4 collisions
+						// (because our collision squares are 35x35 but the tile in the
+						// level are 70x70)
+					cells[layerIdx][y][x] = 1;
+					cells[layerIdx][y-1][x] = 1;
+					cells[layerIdx][y-1][x+1] = 1;
+					cells[layerIdx][y][x+1] = 1;
+				}
+				else if(cells[layerIdx][y][x] != 1) {
+						// if we haven't set this cell's value, then set it to 0 now
+					cells[layerIdx][y][x] = 0;
+				}		
+				idx++;
+			}
+		}
+	}
+}
+
 function drawMap()
 {
 	for(var layerIdx=0; layerIdx<LAYER_COUNT; layerIdx++)
 	{
 		var idx = 0;
+		for( var y = 0; y < level1.layers[layerIdx].height; y++ )
 		{
 			for( var x = 0; x < level1.layers[layerIdx].width; x++ )
 			{
@@ -127,16 +171,18 @@ function drawMap()
 
 function run()
 {
+
 	context.fillStyle = "#ccc";		
 	context.fillRect(0, 0, canvas.width, canvas.height);
 	
 	var deltaTime = getDeltaTime();
 
-	player.update(deltaTime);
+	// draw the world map
+	drawMap();
 	
+	player.update(deltaTime);
 	player.draw();
 	
-		
 	// update the frame counter 
 	fpsTime += deltaTime;
 	fpsCount++;
@@ -146,7 +192,6 @@ function run()
 		fps = fpsCount;
 		fpsCount = 0;
 	}		
-		
 	// draw the FPS
 	context.fillStyle = "#f00";
 	context.font="14px Arial";
@@ -154,7 +199,6 @@ function run()
 }
 
 initialize();
-
 
 //-------------------- Don't modify anything below here
 
