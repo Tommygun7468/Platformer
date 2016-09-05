@@ -38,6 +38,12 @@ var LAYER_BACKGOUND = 0;
 var LAYER_PLATFORMS = 1;
 var LAYER_LADDERS = 2;
 
+var score = 0;
+var lives = 3;
+
+var heartImage = document.createElement("img");
+heartImage.src = "heartimage.png";
+
 var MAP = { tw: 60, th: 15 };
 var TILE = 35;
 var TILESET_TILE = TILE * 2;
@@ -118,6 +124,9 @@ function bound(value, min, max)
 	return value;
 }
 
+var musicBackground;
+var sfxFire;
+
 var cells = []; // the array that holds our simplified collision data
 function initialize() {
 	for(var layerIdx = 0; layerIdx < LAYER_COUNT; layerIdx++) { // initialize the collision map
@@ -143,16 +152,57 @@ function initialize() {
 			}
 		}
 	}
+
+	musicBackground = new Howl(
+	{
+		urls: ["background.ogg"],
+		loop: true,
+		buffer: true,
+		volume: 0.5
+	} );
+	musicBackground.play();
+
+	sfxFire = new Howl(
+		{
+			urls: ["fireEffect.ogg"],
+			buffer: true,
+			volume: 1,
+			onend: function() {
+				isSfxPlaying = false;
+			}
+		} );
 }
 
+var worldOffsetX = 0;
 function drawMap()
 {
+	var startX = -1;
+	var maxTiles = Math.floor(SCREEN_WIDTH / TILE) + 2;
+	var tileX = pixelToTile(player.position.x);
+	var offsetX = TILE + Math.floor(player.position.x%TILE);
+
+	startX = tileX - Math.floor(maxTiles / 2);
+
+	if(startX < -1)
+	{
+		startX = 0;
+		offsetX = 0;
+	}
+	if(startX > MAP.tw - maxTiles)
+	{
+		startX = MAP.tw - maxTiles + 1;
+		offsetX = TILE;
+	} 
+
+	worldOffsetX = startX * TILE + offsetX;
+
 	for(var layerIdx=0; layerIdx<LAYER_COUNT; layerIdx++)
 	{
-		var idx = 0;
 		for( var y = 0; y < level1.layers[layerIdx].height; y++ )
 		{
-			for( var x = 0; x < level1.layers[layerIdx].width; x++ )
+			var idx = y * level1.layers[layerIdx].width + startX;
+
+			for( var x = startX; x < startX + maxTiles; x++ )
 			{
 				if( level1.layers[layerIdx].data[idx] != 0 )
 				{
@@ -177,10 +227,10 @@ function run()
 	
 	var deltaTime = getDeltaTime();
 
+	player.update(deltaTime);
+
 	// draw the world map
 	drawMap();
-	
-	player.update(deltaTime);
 	player.draw();
 	
 	// update the frame counter 
@@ -196,6 +246,18 @@ function run()
 	context.fillStyle = "#f00";
 	context.font="14px Arial";
 	context.fillText("FPS: " + fps, 5, 20, 100);
+
+	// score
+	context.fillStyle = "#005500";
+	context.font="26px Arial";
+	var scoreText = "Score: " + score;
+	context.fillText(scoreText, SCREEN_WIDTH - 205, 45);
+
+	// life counter
+	for(var i=0; i<lives; i++)
+	{
+		context.drawImage(heartImage, 20 + ((heartImage.width+2)*i), 26);
+	}
 }
 
 initialize();
