@@ -9,6 +9,9 @@ var ANIM_JUMP_RIGHT = 4;
 var ANIM_WALK_RIGHT = 5;
 var ANIM_MAX = 6;
 
+var score = 0;
+var lives = 3;
+
 var Player = function(){
 	this.sprite = new Sprite("ChuckNorris.png");
 	this.sprite.buildAnimation(12, 8, 165, 126, 0.05,
@@ -45,6 +48,10 @@ var Player = function(){
 	this.cooldownTimer = 0;
 };
 
+function sleep (time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+}
+
 Player.prototype.update = function(deltaTime){
 
 	this.sprite.update(deltaTime);
@@ -52,6 +59,16 @@ Player.prototype.update = function(deltaTime){
 	var left = false;
 	var right = false;
 	var jump = false;
+
+	if(player.position.y >= canvas.height) {
+		player.position.set(9 * TILE, 0 * TILE);
+		lives--;
+	}
+
+	if(lives <= 0){
+		sleep
+		document.location.reload();
+	}
 
 	// check keypress events
 	if(keyboard.isKeyDown(keyboard.KEY_LEFT) == true) {
