@@ -12,6 +12,26 @@ var ANIM_MAX = 6;
 var score = 0;
 var lives = 3;
 
+function runGameOver(deltaTime)
+{
+	score--;
+	context.font = "bold 20px Arial";
+    context.fillStyle = "#aa0000";
+    context.fillText("You Win!", 260, 250);
+	sleep(10000).then(() => {
+	document.location.reload();
+	})
+}
+
+function runGameOverTwo(deltaTime) {
+    context.fillStyle = "#00aaff";
+    context.font = "bold 48px Arial";
+    context.fillText("GAME OVER!", 200, 370)
+	sleep(5000).then(() => {
+	document.location.reload();
+	})
+}
+
 var Player = function(){
 	this.sprite = new Sprite("ChuckNorris.png");
 	this.sprite.buildAnimation(12, 8, 165, 126, 0.05,
@@ -66,8 +86,10 @@ Player.prototype.update = function(deltaTime){
 	}
 
 	if(lives <= 0){
-		sleep
-		document.location.reload();
+		runGameOverTwo(deltaTime)
+		var wasleft = this.velocity.x = 0;
+		var wasright = this.velocity.x = 0;
+		var wasup = this.velocity.y = 0;
 	}
 
 	// check keypress events
@@ -112,7 +134,6 @@ Player.prototype.update = function(deltaTime){
 			this.sprite.setAnimation(ANIM_JUMP_RIGHT);
 		} 
 	}
-
 	if(this.cooldownTimer > 0)
 	{
 		this.cooldownTimer -= deltaTime;
@@ -219,6 +240,14 @@ Player.prototype.update = function(deltaTime){
 			this.position.x = tileToPixel(tx + 1);
 			this.velocity.x = 0; // stop horizontal velocity
 		}
+	}
+	if(cellAtTileCoord(LAYER_OBJECT_TRIGGERS, tx, ty) == true)
+	{
+		// game over man, game over
+		runGameOver(deltaTime)
+		var wasleft = this.velocity.x = 0;
+		var wasright = this.velocity.x = 0;
+		var wasup = this.velocity.y = 0;
 	}
 }
 

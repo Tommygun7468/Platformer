@@ -39,6 +39,8 @@ var LAYER_BACKGOUND = 0;
 var LAYER_PLATFORMS = 1;
 var LAYER_LADDERS = 2;
 
+var LAYER_OBJECT_TRIGGERS = 3
+
 var heartImage = document.createElement("img");
 heartImage.src = "heartimage.png";
 
@@ -151,6 +153,26 @@ function initialize() {
 		}
 	}
 
+	// initialize trigger layer in collision map
+	cells[LAYER_OBJECT_TRIGGERS] = [];
+	idx = 0;
+	for(var y = 0; y < level1.layers[LAYER_OBJECT_TRIGGERS].height; y++) {
+		cells[LAYER_OBJECT_TRIGGERS][y] = [];
+		for(var x = 0; x < level1.layers[LAYER_OBJECT_TRIGGERS].width; x++) {
+			if(level1.layers[LAYER_OBJECT_TRIGGERS].data[idx] != 0) {
+				cells[LAYER_OBJECT_TRIGGERS][y][x] = 1;
+				cells[LAYER_OBJECT_TRIGGERS][y-1][x] = 1;
+				cells[LAYER_OBJECT_TRIGGERS][y-1][x+1] = 1;
+				cells[LAYER_OBJECT_TRIGGERS][y][x+1] = 1;
+			}
+			else if(cells[LAYER_OBJECT_TRIGGERS][y][x] != 1) {
+				// if we haven't set this cell's value, then set it to 0 now
+				cells[LAYER_OBJECT_TRIGGERS][y][x] = 0;
+			}
+			idx++;
+		}
+	}
+
 	musicBackground = new Howl(
 	{
 		urls: ["background.ogg"],
@@ -246,6 +268,7 @@ function run()
 	context.fillText("FPS: " + fps, 5, 20, 100);
 
 	// score
+	score++;
 	context.fillStyle = "#005500";
 	context.font="26px Arial";
 	var scoreText = "Score: " + score;
